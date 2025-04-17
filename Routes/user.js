@@ -4,8 +4,9 @@ const {userModel }= require("../db");
 const zod = require("zod");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const userMiddleware = require("../Middlewares/user");
 
-const JWT_USER_SECRET="shcbwujne";
+const {JWT_USER_SECRET}=require("../config");
 
 const userRouter = Router();
 
@@ -89,25 +90,10 @@ userRouter.post("/signin",async(req,res)=>{
 });
 
 
-app.use((req,res,next)=>{
-    const token = req.headers.token;
-    try{
-        const decodedData = jwt.verify(token,JWT_USER_SECRET);
-        if(decodedData.userId){
-            req.userId = decodedData.userId;
-            next();
-        }
-    }
-    catch(err){
-        return res.send({
-            msg:"invalid token !!"
-        })
-    }
-
-})
 
 
-userRouter.get("/courses",async(req,res)=>{
+
+userRouter.get("/courses",userMiddleware, async(req,res)=>{
     const userId = req.userId;
     try{
        const myCourses= await userModel.find({
@@ -126,7 +112,7 @@ userRouter.get("/courses",async(req,res)=>{
         }
     }
     catch(err){
-        
+
     }
 
 });

@@ -4,7 +4,8 @@ const adminRouter = Router();
 const jwt = require("jsonwebtoken");
 const bcrypt= require("bcryptjs");
 const zod = require("zod");
-const JWT_ADMIN_SECRET="cbwjvjqn";
+const {JWT_ADMIN_SECRET}=require("../config");
+const adminMiddleware = require("../Middlewares/admin");
 
 adminRouter.post("/signup",async(req,res)=>{
 
@@ -87,18 +88,18 @@ adminRouter.post("/signin",async(req,res)=>{
 })
 
 
-adminRouter.post("/course",(req,res)=>{
+adminRouter.post("/course",adminMiddleware,(req,res)=>{
     
 })
 
 
 
-adminRouter.get("/preview",(req,res)=>{
+adminRouter.get("/preview",adminMiddleware,(req,res)=>{
     
 })
 
 
-adminRouter.put("/course",(req,res)=>{
+adminRouter.put("/course",adminMiddleware,(req,res)=>{
     
 })
 
