@@ -1,5 +1,5 @@
 const Router = require("express");
-const { adminModel } = require("../db");
+const { adminModel, courseModel } = require("../db");
 const adminRouter = Router();
 const jwt = require("jsonwebtoken");
 const bcrypt= require("bcryptjs");
@@ -39,7 +39,7 @@ adminRouter.post("/signup",async(req,res)=>{
         }
         catch(err){
             return res.send({
-                msg:"admin not found !!"
+                msg:"admin already exists  !!"
             })
         }
 
@@ -66,8 +66,8 @@ adminRouter.post("/signin",async(req,res)=>{
             email
         })
 
-        bcrypt.compare(password,admin.password);
-        if(admin){
+        const passwordMatch = bcrypt.compare(password,admin.password);
+        if(passwordMatch){
             const token = jwt.sign({
                 adminId :admin._id
             },JWT_ADMIN_SECRET);
@@ -77,6 +77,9 @@ adminRouter.post("/signin",async(req,res)=>{
                 token
             })
         }
+        return res.send({
+            msg:"admin not found !!"
+        })
 
     }
     catch(err){
@@ -87,19 +90,89 @@ adminRouter.post("/signin",async(req,res)=>{
     
 })
 
-
-adminRouter.post("/course",adminMiddleware,(req,res)=>{
+// admin can create a  course 
+adminRouter.post("/course",adminMiddleware,async(req,res)=>{
+    const adminId = req.adminId;
+    const {title,description,price,imageUrl}=req.body;
+    const requiredBody = zod.object({
+        title:zod.string(),
+        descrption:zod.string(),
+        price:zod.number(),
+        imageUrl:zod.string(),
+    })
+    const {success,error}= requiredBody.safeParse(req.body);
+    if(error){
+        return res.send({
+            msg:"provide valid course credentials !!",
+            err:error
+        })
+    }
+    try{
+        await courseModel.create({
+            title,
+            description,
+            price,
+            imageUrl,
+            creatorId:adminId
+        })
+        res.send({
+            msg:"course created successfully !!"
+        })
+    }
+    catch(err){
+        res.send({
+            msg:"error while creating a course !!"
+        })
+    }
     
 })
 
 
-
-adminRouter.get("/preview",adminMiddleware,(req,res)=>{
-    
+// admin can see all their courses
+adminRouter.get("/preview",adminMiddleware,async(req,res)=>{
+    const adminId = req.adminId;
+    try{
+        const adminCourses = await courseModel.find({
+            creatorId:adminId
+        })
+        if(adminCourses.length==0)return res.send({
+            msg:"admin do not have any course !!"
+        })
+        res.send({
+            msg:"all courses are ",
+            adminCourses
+        })
+    }
+    catch(err){
+        res.send({
+            msg:"error while finding a course in courseModel !!"
+        })
+    }
 })
 
 
 adminRouter.put("/course",adminMiddleware,(req,res)=>{
+    const adminId = req.adminId;
+    const {title,description,price,imageUrl}=req.body;
+    const requiredBody = zod.object({
+        title:zod.string(),
+        descrption:zod.string(),
+        price:zod.number(),
+        imageUrl:zod.string(),
+    })
+    const {success,error}= requiredBody.safeParse(req.body);
+    if(error){
+        return res.send({
+            msg:"provide valid course credentials !!",
+            err:error
+        })
+    }
+
+    try{
+        await courseModel.findOne({
+            
+        })
+    }
     
 })
 

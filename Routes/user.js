@@ -1,6 +1,6 @@
 
 const Router = require("express");
-const {userModel }= require("../db");
+const {userModel, purchaseModel }= require("../db");
 const zod = require("zod");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -41,7 +41,7 @@ userRouter.post("/signup",async(req,res)=>{
     }
     catch(err){
         return res.send({
-            msg:"user not found !!"
+            msg:"user already exists !!"
         })
     }
 
@@ -67,8 +67,8 @@ userRouter.post("/signin",async(req,res)=>{
             email
         })
 
-        bcrypt.compare(password,user.password);
-        if(user){
+        const passwordMatch = bcrypt.compare(password,user.password);
+        if(passwordMatch){
             const token = jwt.sign({
                 userId :user._id
             },JWT_USER_SECRET);
@@ -78,11 +78,14 @@ userRouter.post("/signin",async(req,res)=>{
                 token
             })
         }
+        return res.send({
+            msg:"user not found !!"
+        })
 
     }
     catch(err){
         return res.send({
-            msg:"user not found !!"
+            msg:"user not exists !!"
         })
     }
     
@@ -92,11 +95,12 @@ userRouter.post("/signin",async(req,res)=>{
 
 
 
+// user can see their all purchased courses 
 
 userRouter.get("/courses",userMiddleware, async(req,res)=>{
     const userId = req.userId;
     try{
-       const myCourses= await userModel.find({
+       const myCourses= await purchaseModel.find({
             _id:userId
         })
         if(myCourses.length==0){
@@ -112,7 +116,9 @@ userRouter.get("/courses",userMiddleware, async(req,res)=>{
         }
     }
     catch(err){
-
+        return res.send({
+            msg:"error while finding the courses from purchaseModel !!"
+        })
     }
 
 });
