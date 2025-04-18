@@ -1,6 +1,6 @@
 
 const Router = require("express");
-const {userModel, purchaseModel }= require("../db");
+const {userModel, purchaseModel, courseModel }= require("../db");
 const zod = require("zod");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -101,7 +101,10 @@ userRouter.get("/courses",userMiddleware, async(req,res)=>{
     const userId = req.userId;
     try{
        const myCourses= await purchaseModel.find({
-            _id:userId
+            userId
+        })
+        const courseDetails = await courseModel.find({
+            _id: {$in :myCourses.map(x=>x.courseId)}
         })
         if(myCourses.length==0){
             return res.send({
@@ -111,7 +114,8 @@ userRouter.get("/courses",userMiddleware, async(req,res)=>{
         else{
             return res.send({
                 msg:"your courses are : ",
-                myCourses
+                myCourses,
+                courseDetails
             })
         }
     }

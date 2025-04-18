@@ -151,14 +151,15 @@ adminRouter.get("/preview",adminMiddleware,async(req,res)=>{
 })
 
 
-adminRouter.put("/course",adminMiddleware,(req,res)=>{
+adminRouter.put("/course",adminMiddleware,async(req,res)=>{
     const adminId = req.adminId;
-    const {title,description,price,imageUrl}=req.body;
+    const {title,description,price,imageUrl,courseId}=req.body;
     const requiredBody = zod.object({
         title:zod.string(),
         descrption:zod.string(),
         price:zod.number(),
         imageUrl:zod.string(),
+        courseId:zod.string()
     })
     const {success,error}= requiredBody.safeParse(req.body);
     if(error){
@@ -169,12 +170,32 @@ adminRouter.put("/course",adminMiddleware,(req,res)=>{
     }
 
     try{
-        await courseModel.findOne({
-            
+        await courseModel.updateOne({
+            _id:courseId,
+            creatorId:adminId
+        },
+        {
+            $set:{
+                title:title,
+                description:description,
+                price:price,
+                imageUrl:imageUrl
+            }
+        }
+        )
+        res.send({
+            msg:"course is updated successfully !!"
         })
     }
+    catch(err){
+        res.send({
+            msg:"you dont have any course for this courseId !!"
+        })
+    }
+   
+   
     
-})
+});
 
 
 module.exports=adminRouter;

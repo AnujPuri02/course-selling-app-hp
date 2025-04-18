@@ -1,8 +1,24 @@
 const Router = require("express");
-const { userModel, courseModel } = require("../db");
+const { userModel, courseModel,purchaseModel } = require("../db");
 const courseRouter = Router();
 
-courseRouter.post("/purchase",(req,res)=>{
+courseRouter.post("/purchase",userMiddleware,async(req,res)=>{
+    const userId = req.userId;
+    const courseId = req.body.courseId;
+    try{
+        await purchaseModel.create({
+            userId,
+            courseId
+        })
+        res.send({
+            msg:"user successfully purchased the course !!"
+        })
+    }
+    catch(err){
+        res.send({
+            msg:"error while purchasing the course !!"
+        })
+    }
 
 });
 
