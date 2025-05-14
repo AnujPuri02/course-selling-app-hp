@@ -5,6 +5,7 @@ const zod = require("zod");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const userMiddleware = require("../Middlewares/user");
+require("dotenv").config();
 
 const {JWT_USER_SECRET}=require("../config");
 
@@ -14,7 +15,7 @@ userRouter.post("/signup",async(req,res)=>{
     const {email,password,firstName,lastName}=req.body;
     const requiredBody = zod.object({
         email:zod.string().email(),
-        password:zod.string().password(),
+        password:zod.string(),
         firstName:zod.string(),
         lastName:zod.string()
     })
@@ -27,7 +28,7 @@ userRouter.post("/signup",async(req,res)=>{
        })
     }
     try{
-        const hashedPass = bcrypt.hash(password,5);
+        const hashedPass = await bcrypt.hash(password,5);
         console.log(hashedPass);
         await userModel.create({
             email,
@@ -52,7 +53,7 @@ userRouter.post("/signin",async(req,res)=>{
     const {email,password}= req.body;
     const requiredBody = zod.object({
         email:zod.string().email(),
-        password:zod.string().password()
+        password:zod.string()
     })
     const {sucess, error} = requiredBody.safeParse(req.body);
     if(error){
@@ -67,7 +68,7 @@ userRouter.post("/signin",async(req,res)=>{
             email
         })
 
-        const passwordMatch = bcrypt.compare(password,user.password);
+        const passwordMatch = await bcrypt.compare(password,user.password);
         if(passwordMatch){
             const token = jwt.sign({
                 userId :user._id
