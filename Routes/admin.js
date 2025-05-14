@@ -6,13 +6,14 @@ const bcrypt= require("bcryptjs");
 const zod = require("zod");
 const {JWT_ADMIN_SECRET}=require("../config");
 const adminMiddleware = require("../Middlewares/admin");
+require("dotenv").config();
 
 adminRouter.post("/signup",async(req,res)=>{
 
      const {email,password,firstName,lastName}=req.body;
         const requiredBody = zod.object({
             email:zod.string().email(),
-            password:zod.string().password(),
+            password:zod.string(),
             firstName:zod.string(),
             lastName:zod.string()
         })
@@ -25,7 +26,7 @@ adminRouter.post("/signup",async(req,res)=>{
            })
         }
         try{
-            const hashedPass = bcrypt.hash(password,5);
+            const hashedPass =  await bcrypt.hash(password,5);
             console.log(hashedPass);
             await adminModel.create({
                 email,
@@ -51,7 +52,7 @@ adminRouter.post("/signin",async(req,res)=>{
     const {email,password}= req.body;
     const requiredBody = zod.object({
         email:zod.string().email(),
-        password:zod.string().password()
+        password:zod.string()
     })
     const {sucess, error} = requiredBody.safeParse(req.body);
     if(error){
@@ -66,7 +67,7 @@ adminRouter.post("/signin",async(req,res)=>{
             email
         })
 
-        const passwordMatch = bcrypt.compare(password,admin.password);
+        const passwordMatch = await bcrypt.compare(password,admin.password);
         if(passwordMatch){
             const token = jwt.sign({
                 adminId :admin._id
